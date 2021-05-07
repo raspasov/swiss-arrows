@@ -1,4 +1,6 @@
-(ns swiss.arrows)
+(ns swiss.arrows
+ #?(:cljs
+    (:require-macros swiss.arrows)))
 
 (defmacro ^:internal -<>*
   "helper macro used by public API macros -<> and -<>>.
@@ -14,7 +16,8 @@
            :otherwise 0)]
     (cond
      (> c 1)              (throw
-                           (Exception.
+                           (#?(:clj  Exception.
+                               :cljs js/Error)
                             "No more than one position per form is allowed."))
      (or (symbol? form)
          (keyword? form)) `(~form ~x)
@@ -110,19 +113,20 @@
   [form & branches]
   `(furcula* -<>> :parallel ~form ~branches))
 
-(defmacro ^:internal defnilsafe [docstring non-safe-name nil-safe-name]
-  `(defmacro ~nil-safe-name ~docstring
-     {:arglists '([~'x ~'form] [~'x ~'form ~'& ~'forms])}
-     ([x# form#]
-        `(let [~'i# ~x#] (when-not (nil? ~'i#) (~'~non-safe-name ~'i# ~form#))))
-     ([x# form# & more#]
-        `(~'~nil-safe-name (~'~nil-safe-name ~x# ~form#) ~@more#))))
-
-(defnilsafe "the diamond wand version of some->"
-  -<> some-<>)
-
-(defnilsafe "the diamond wand version of some->>"
-  -<>> some-<>>)
+;How to convert this to CLJC?
+;(defmacro ^:internal defnilsafe [docstring non-safe-name nil-safe-name]
+;  `(defmacro ~nil-safe-name ~docstring
+;     {:arglists '([~'x ~'form] [~'x ~'form ~'& ~'forms])}
+;     ([x# form#]
+;        `(let [~'i# ~x#] (when-not (nil? ~'i#) (~'~non-safe-name ~'i# ~form#))))
+;     ([x# form# & more#]
+;        `(~'~nil-safe-name (~'~nil-safe-name ~x# ~form#) ~@more#))))
+;
+;(defnilsafe "the diamond wand version of some->"
+;  -<> some-<>)
+;
+;(defnilsafe "the diamond wand version of some->>"
+;  -<>> some-<>>)
 
 (defmacro apply->>
   "applicative ->>"
